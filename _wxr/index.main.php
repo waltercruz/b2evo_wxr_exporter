@@ -316,7 +316,7 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		echo '<wp:comment>';
 //		print_r($Comment);
 		echo '<wp:comment_id>'. $Comment->item_ID . '</wp:comment_id>';
-		echo '<wp:comment_content><![CDATA[' . utf8_encode($Comment->content) . ']]><wp:comment_content>';
+		echo '<wp:comment_content><![CDATA[' . utf8_encode($Comment->content) . ']]></wp:comment_content>';
 		echo '<wp:comment_author><![CDATA[' . $Comment->get_author_name() .']]></wp:comment_author>';
 		echo '<wp:comment_author_email>' . $Comment->get_author_email() . '</wp:comment_author_email>';
 		echo '<wp:comment_author_url>' . $Comment->get_author_url() . '</wp:comment_author_url>';
