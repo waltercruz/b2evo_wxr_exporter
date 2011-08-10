@@ -45,8 +45,12 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 //print_r($GenericCategoryCache);
 ?>
 <!-- generator="<?php echo $app_name ?>/<?php echo $app_version ?>" -->
-<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:admin="http://webns.net/mvcb/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:wp="http://wordpress.org/export/1.0/">
-	<channel>
+<rss version="2.0"
+        xmlns:content="http://purl.org/rss/1.0/modules/content/"
+        xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:wp="http://wordpress.org/export/1.0/">
+<channel>
 		<title><?php
 			$Blog->disp( 'name', 'xml' );
 			// ------------------------- TITLE FOR THE CURRENT REQUEST -------------------------
@@ -71,6 +75,7 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		foreach ($GenericCategoryCache->subset_cache[$Blog->ID] as $Chapter)
 		{
 			echo '<wp:category><wp:category_nicename>' . $Chapter->dget( 'urlname' ) .'</wp:category_nicename><wp:category_parent></wp:category_parent><wp:cat_name><![CDATA[' . utf8_encode($Chapter->dget( 'name' , 'raw' ))   .']]></wp:cat_name></wp:category>';
+			echo "\n";
 		}
 		?>
 		<admin:generatorAgent rdf:resource="http://b2evolution.net/?v=<?php echo $app_version ?>"/>
@@ -214,7 +219,7 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 				// and "we only need to make the links absolute in RSS"
 				// and then you get half baked code! The URL LINK stays RELATIVE!! :((
 				// TODO: clean solution : work in format_to_output! --- we probably need 'htmlfeed' as 'htmlbody+absolute'
-				echo make_rel_links_abs( $content );
+				echo make_rel_links_abs( utf8_encode($content) );
 
 				// Display Item footer text (text can be edited in Blog Settings):
 				$Item->footer( array(
@@ -227,8 +232,6 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 					<?php
 				}
 			?>
-			<comments><?php echo $Item->get_single_url( 'auto' ); ?>#comments</comments>
-			<wfw:commentRss><?php echo format_to_output( $Item->get_feedback_feed_url( '_rss2' ), 'xml' ); ?></wfw:commentRss>
 
 		<?php
 		$type_list = array();
@@ -259,10 +262,10 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		{
 		echo '<wp:comment>';
 		echo '<wp:comment_id>'. $Comment->ID . '</wp:comment_id>';
-		echo '<wp:comment_content><![CDATA[' . utf8_encode($Comment->content) . ']]></wp:comment_content>';
-		echo '<wp:comment_author><![CDATA[' . $Comment->get_author_name() .']]></wp:comment_author>';
+		echo '<wp:comment_content><![CDATA[' . $Comment->get_content('xml') . ']]></wp:comment_content>';
+		echo '<wp:comment_author><![CDATA['; $Comment->author(); echo']]></wp:comment_author>';
 		echo '<wp:comment_author_email>' . $Comment->get_author_email() . '</wp:comment_author_email>';
-		echo '<wp:comment_author_url>' . $Comment->get_author_url() . '</wp:comment_author_url>';
+		echo '<wp:comment_author_url>' . utf8_encode($Comment->get_author_url()) . '</wp:comment_author_url>';
 		echo '<wp:comment_author_IP>' . $Comment->author_IP .'</wp:comment_author_IP>';
 		echo '<wp:comment_date>' . mysql2date( 'Y-m-d H:i:s', $Comment->date, false) .'</wp:comment_date>';
 		echo '<wp:comment_date_gmt>' . mysql2date( 'Y-m-d H:i:s', $Comment->date, true) .'</wp:comment_date_gmt>';
@@ -283,3 +286,6 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		?>
 	</channel>
 </rss>
+<?
+exit(0);
+?>
