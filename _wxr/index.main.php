@@ -28,7 +28,6 @@ init_MainList( 1000000000 );
 // What level of detail do we want?
 //$feed_content = $Blog->get_setting('feed_content');
 $feed_content = 'full';
-
 //header_content_type( 'application/xml' );	// Sets charset!
 
 echo '<?xml version="1.0" encoding="UTF-8"?'.'>';
@@ -62,7 +61,6 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 			// ------------------------------ END OF REQUEST TITLE -----------------------------
 		?></title>
 		<link><?php $Blog->disp( 'url', 'xml' ) ?></link>
-		<atom:link rel="self" type="application/rss+xml" href="<?php $Blog->disp( 'rss2_url', 'xmlattr' ); ?>" />
 		<description><?php $Blog->disp( 'shortdesc', 'xml' ) ?></description>
 		<language><?php $Blog->disp( 'locale', 'xml' ) ?></language>
 		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
@@ -102,7 +100,7 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 			?></wp:post_type>
 			<wp:comment_status><?php echo $Item->comment_status ?></wp:comment_status>
 			<wp:status><?php echo($statusmap[$Item->status]) ?></wp:status>
-			<wp:post_name><?php echo $Item->urltitle ?><wp:post_name>
+			<wp:post_name><?php echo $Item->urltitle ?></wp:post_name>
 			<wp:post_id><?php echo $Item->ID ?></wp:post_id>
 			<?php
 				$Item->issue_date( array(
@@ -171,60 +169,6 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 				{	// POST CONTENTS -----------------------------------------------------------------
 
 					?>
-			<description><?php
-				// URL link, if the post has one: (TODO: move below the text, because in summaries or podcasts it blows to have this on top)
-				$Item->url_link( array(
-						'before'        => '<p>',
-						'after'         => '</p>',
-						'format'        => 'entityencoded',
-						'podcast'       => false,
-					) );
-
-				// Display images that are linked to this post:
-				$content = $Item->get_images( array(
-						'before' =>              '<div>',
-						'before_image' =>        '<div>',
-						'before_image_legend' => '<div><i>',
-						'after_image_legend' =>  '</i></div>',
-						'after_image' =>         '</div>',
-						'after' =>               '</div>',
-						'image_size' =>          'fit-320x320'
-					), 'entityencoded' );
-
-//				$content .= $Item->get_content_teaser( 1, false, 'entityencoded' );
-
-				if( $feed_content == 'normal' )
-				{	// Teasers only
-					$content .= $Item->get_more_link( array(
-							'before'    => '',
-							'after'     => '',
-							'disppage'  => 1,
-							'format'    => 'entityencoded',
-						) );
-				}
-				else
-				{	// Full contents
-					$Item->split_pages('entityencoded');
-					for ($i=2;$i<=$Item->pages;$i++)
-					{		
-					$content .= $Item->get_content_page($i,'entityencoded');
-					}
-				}
-
-				// fp> this is another one of these "oooooh it's just a tiny little change"
-				// and "we only need to make the links absolute in RSS"
-				// and then you get half baked code! The URL LINK stays RELATIVE!! :((
-				// TODO: clean solution : work in format_to_output!
-				echo make_rel_links_abs( $content );
-
-				// Display Item footer text (text can be edited in Blog Settings):
-				$Item->footer( array(
-						'mode'        => 'xml',
-						'block_start' => '<div class="item_footer">',
-						'block_end'   => '</div>',
-						'format'      => 'entityencoded',
-					) );
-			?></description>
 			<content:encoded><![CDATA[<?php
 				// URL link, if the post has one:
 				$Item->url_link( array(
@@ -291,12 +235,12 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		if( version_compare( $app_version, '4.0' ) > 0 )
 		{
 			$type_list[] = "comment";
-			$CommentList = new CommentList2( $Blog, $Blog->get_setting('comments_per_page'), 'CommentCache', 'c_' );
+			$CommentList = new CommentList2( $Blog, 1000, 'CommentCache', 'c_' );
 
 			// Filter list:
 			$CommentList->set_default_filters( array(
 				'types' => $type_list,
-				'statuses' => array ( 'published' ),
+				'statuses' => array( 'published', 'draft', 'deprecated' ),
 				'post_ID' => $Item->ID,
 				'order' => $Blog->get_setting( 'comments_orderdir' ),
 			) );
@@ -309,13 +253,12 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		else
 		{
 			$type_list[] = "'comment'";
-			$CommentList = & new CommentList( NULL, implode(',', $type_list), array('published'), $Item->ID, '', 'ASC' );
+			$CommentList = & new CommentList( NULL, implode(',', $type_list), array( 'published', 'draft', 'deprecated' ), $Item->ID, '', 'ASC' );
 		}
 		while( $Comment = & $CommentList->get_next() )
 		{
 		echo '<wp:comment>';
-//		print_r($Comment);
-		echo '<wp:comment_id>'. $Comment->item_ID . '</wp:comment_id>';
+		echo '<wp:comment_id>'. $Comment->ID . '</wp:comment_id>';
 		echo '<wp:comment_content><![CDATA[' . utf8_encode($Comment->content) . ']]></wp:comment_content>';
 		echo '<wp:comment_author><![CDATA[' . $Comment->get_author_name() .']]></wp:comment_author>';
 		echo '<wp:comment_author_email>' . $Comment->get_author_email() . '</wp:comment_author_email>';
@@ -323,8 +266,15 @@ $ItemTypeCache = & get_Cache( 'ItemTypeCache' );
 		echo '<wp:comment_author_IP>' . $Comment->author_IP .'</wp:comment_author_IP>';
 		echo '<wp:comment_date>' . mysql2date( 'Y-m-d H:i:s', $Comment->date, false) .'</wp:comment_date>';
 		echo '<wp:comment_date_gmt>' . mysql2date( 'Y-m-d H:i:s', $Comment->date, true) .'</wp:comment_date_gmt>';
-		echo '<wp:comment_approved>1</wp:comment_approved>';
-		echo '</wp:comment>'; 
+		
+		$comment_approved = 0;
+		if ($Comment->status == 'published')
+		{
+		    $comment_approved = 1;    
+		}
+		echo '<wp:comment_approved>'. $comment_approved . '</wp:comment_approved>';
+		echo '</wp:comment>';
+		echo "\n";
 		}
 		?>
 		</item>
