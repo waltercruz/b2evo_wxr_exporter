@@ -326,7 +326,7 @@ $relevant_user_IDs = array();
 
       // Post attachments
       $FileList = $Item->get_attachment_FileList();
-      foreach( $Item->get_attachment_FileList() as $File ) {
+      while( $File = $FileList->get_next() ) {
         if( $File->is_dir() ) {
           continue;
         }
