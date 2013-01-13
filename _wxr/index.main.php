@@ -58,6 +58,7 @@ function render_content($content) {
   $content = preg_replace_callback('~<!-- codeblock (.*?)--><pre><code>(.*?)</code></pre><!-- /codeblock -->~s', 'massage_code_content', $content);
 
   $content = make_rel_links_abs( $content );
+  $content = make_clickable( $content );
   // remove trailing LF characters
   $content = preg_replace('~\r$~m', '', $content);
   return $content;
@@ -308,7 +309,7 @@ $relevant_user_IDs = array();
         echo '<wp:comment_content><![CDATA[' . $comment_content . ']]></wp:comment_content>';
         echo '<wp:comment_author><![CDATA[' . $Comment->get_author_name() . ']]></wp:comment_author>';
         echo '<wp:comment_author_email>' . $Comment->get_author_email() . '</wp:comment_author_email>';
-        echo '<wp:comment_author_url>' . $Comment->get_author_url() . '</wp:comment_author_url>';
+        echo '<wp:comment_author_url>' . htmlspecialchars( $Comment->get_author_url(), ENT_NOQUOTES) . '</wp:comment_author_url>';
         echo '<wp:comment_author_IP>' . $Comment->author_IP .'</wp:comment_author_IP>';
         if( $Comment->author_user_ID ) {
           echo '<wp:comment_user_id>' . $Comment->author_user_ID .'</wp:comment_user_id>';
