@@ -26,7 +26,7 @@ define('OFFSET_ATTACHMENT_ID', 2000000000);
 
 // Note: even if we request the same post as $Item earlier, the following will do more restrictions (dates, etc.)
 // Init the MainList object:
-// init_MainList( 1000000000 );
+//init_MainList( 1000000000 );
 init_MainList( 100 );
 
 // we need to output utf8
@@ -327,36 +327,38 @@ $relevant_user_IDs = array();
 
       // Post attachments
       $FileList = $Item->get_attachment_FileList();
-      while( $File = $FileList->get_next() ) {
-        if( $File->is_dir() ) {
-          continue;
-        }
-        $File->load_meta();
-        $url = $File->get_url();
-        // Fix protocol-relative scheme: "//foo/bar" => "http://foo/bar"
-        if( substr($url, 0, 2) == '//' ) {
-          $url = ( (isset($_SERVER['HTTPS']) && ( $_SERVER['HTTPS'] != 'off' ) ) ?'https://':'http://' ) . substr($url, 2);
-        }
-        $url = preg_replace('~\?mtime=\d+$~', '', $url); // remove "?mtime=123" suffix from URLs
-        $file_ts = $File->get_lastmod_ts();
-        $date_gmt = gmdate('r', $file_ts);
-        echo "</item>\n";
-        echo "<item>\n";
-        // TODO: author
-        printf( "<title>%s</title>\n", $File->title );
-        printf( "<wp:post_id>%s</wp:post_id>\n", $File->ID + OFFSET_ATTACHMENT_ID );
-        printf( "<pubDate>%s</pubDate>\n", $date_gmt );
-        printf( "<guid isPermaLink=\"false\"></guid>\n" );
-        printf( "<content:encoded><![CDATA[%s]]></content:encoded>\n", $File->desc );
-        printf( "<excerpt:encoded><![CDATA[%s]]></excerpt:encoded>\n" );
-        printf( "<wp:attachment_url>%s</wp:attachment_url>\n", $url );
-        printf( "<wp:post_type>%s</wp:post_type>\n", 'attachment' );
-        printf( "<wp:post_parent>%s</wp:post_parent>\n", $Item->ID );
-        printf( "<wp:post_date>%s</wp:post_date>\n", date('r', $file_ts));
-        printf( "<wp:post_date_gmt>%s</wp:post_date_gmt>\n", $date_gmt);
+      if ($FileList) {
+        while( $File = $FileList->get_next() ) {
+          if( $File->is_dir() ) {
+            continue;
+          }
+          $File->load_meta();
+          $url = $File->get_url();
+          // Fix protocol-relative scheme: "//foo/bar" => "http://foo/bar"
+          if( substr($url, 0, 2) == '//' ) {
+            $url = ( (isset($_SERVER['HTTPS']) && ( $_SERVER['HTTPS'] != 'off' ) ) ?'https://':'http://' ) . substr($url, 2);
+          }
+          $url = preg_replace('~\?mtime=\d+$~', '', $url); // remove "?mtime=123" suffix from URLs
+          $file_ts = $File->get_lastmod_ts();
+          $date_gmt = gmdate('r', $file_ts);
+          echo "</item>\n";
+          echo "<item>\n";
+          // TODO: author
+          printf( "<title>%s</title>\n", $File->title );
+          printf( "<wp:post_id>%s</wp:post_id>\n", $File->ID + OFFSET_ATTACHMENT_ID );
+          printf( "<pubDate>%s</pubDate>\n", $date_gmt );
+          printf( "<guid isPermaLink=\"false\"></guid>\n" );
+          printf( "<content:encoded><![CDATA[%s]]></content:encoded>\n", $File->desc );
+          printf( "<excerpt:encoded><![CDATA[%s]]></excerpt:encoded>\n" );
+          printf( "<wp:attachment_url>%s</wp:attachment_url>\n", $url );
+          printf( "<wp:post_type>%s</wp:post_type>\n", 'attachment' );
+          printf( "<wp:post_parent>%s</wp:post_parent>\n", $Item->ID );
+          printf( "<wp:post_date>%s</wp:post_date>\n", date('r', $file_ts));
+          printf( "<wp:post_date_gmt>%s</wp:post_date_gmt>\n", $date_gmt);
 
-        if( strlen($File->alt) ) {
-          printf( "<wp:postmeta><wp:meta_key>_wp_attachment_image_alt</wp:meta_key><wp:meta_value><![CDATA[%s]]></wp:meta_value></wp:postmeta>\n", $File->alt );
+          if( strlen($File->alt) ) {
+            printf( "<wp:postmeta><wp:meta_key>_wp_attachment_image_alt</wp:meta_key><wp:meta_value><![CDATA[%s]]></wp:meta_value></wp:postmeta>\n", $File->alt );
+          }
         }
       }
 
